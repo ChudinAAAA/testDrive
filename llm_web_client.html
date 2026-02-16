@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM API Client - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .response-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .response-container.show {
+            display: block;
+        }
+        
+        .response-header {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .response-text {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .error {
+            border-left-color: #e74c3c;
+        }
+        
+        .error .response-header {
+            color: #e74c3c;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 LLM API Client</h1>
+        <p class="subtitle">Send requests to LLM API and get responses</p>
+        
+        <div class="info-box">
+            ℹ️ This interface sends requests directly from your browser. 
+            Make sure to use CORS-enabled API endpoints or run through a proxy.
+        </div>
+        
+        <div class="input-group">
+            <label for="apiKey">API Key</label>
+            <input type="text" id="apiKey" 
+                   placeholder="Enter your OpenAI API key (sk-...)">
+        </div>
+        
+        <div class="input-group">
+            <label for="apiUrl">API URL (optional)</label>
+            <input type="text" id="apiUrl" 
+                   value="https://api.openai.com/v1/chat/completions"
+                   placeholder="API endpoint URL">
+        </div>
+        
+        <div class="settings">
+            <div class="input-group">
+                <label for="model">Model</label>
+                <input type="text" id="model" value="gpt-3.5-turbo">
+            </div>
+            
+            <div class="input-group">
+                <label for="maxTokens">Max Tokens</label>
+                <input type="text" id="maxTokens" value="500">
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="prompt">Your Prompt</label>
+            <textarea id="prompt" 
+                      placeholder="Enter your question or prompt here...">Explain what is artificial intelligence in 2-3 sentences.</textarea>
+        </div>
+        
+        <button id="sendBtn" onclick="sendRequest()">
+            📤 Send Request
+        </button>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">Sending request...</p>
+        </div>
+        
+        <div id="responseContainer" class="response-container">
+            <div class="response-header">📥 Response:</div>
+            <div id="responseText" class="response-text"></div>
+        </div>
+    </div>
+    
+    <script>
+        async function sendRequest() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const model = document.getElementById('model').value.trim();
+            const maxTokens = parseInt(document.getElementById('maxTokens').value);
+            const prompt = document.getElementById('prompt').value.trim();
+            
+            const responseContainer = document.getElementById('responseContainer');
+            const responseText = document.getElementById('responseText');
+            const loading = document.getElementById('loading');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            // Validation
+            if (!apiKey) {
+                alert('Please enter your API key');
+                return;
+            }
+            
+            if (!prompt) {
+                alert('Please enter a prompt');
+                return;
+            }
+            
+            // Show loading
+            loading.style.display = 'block';
+            responseContainer.classList.remove('show', 'error');
+            sendBtn.disabled = true;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'user', content: prompt }
+                        ],
+                        max_tokens: maxTokens,
+                        temperature: 0.7
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'API request failed');
+                }
+                
+                // Display response
+                const content = data.choices[0].message.content;
+                responseText.textContent = content;
+                responseContainer.classList.add('show');
+                
+            } catch (error) {
+                // Display error
+                responseText.textContent = `Error: ${error.message}\n\nNote: If you see a CORS error, you may need to use a proxy or run the Python CLI version instead.`;
+                responseContainer.classList.add('show', 'error');
+            } finally {
+                loading.style.display = 'none';
+                sendBtn.disabled = false;
+            }
+        }
+        
+        // Allow Enter key to send (with Ctrl/Cmd)
+        document.getElementById('prompt').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                sendRequest();
+            }
+        });
+    </script>
+</body>
+</html>
