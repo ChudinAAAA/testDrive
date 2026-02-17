@@ -181,27 +181,27 @@
         <p class="subtitle">Send requests to LLM API and get responses</p>
         
         <div class="info-box">
-            ℹ️ This interface sends requests directly from your browser. 
-            Make sure to use CORS-enabled API endpoints or run through a proxy.
+            ℹ️ This interface works with RouterAI API (https://routerai.ru). 
+            Get your API key from: https://routerai.ru/pages/vibe-coding-vscode-cline
         </div>
         
         <div class="input-group">
             <label for="apiKey">API Key</label>
             <input type="text" id="apiKey" 
-                   placeholder="Enter your OpenAI API key (sk-...)">
+                   placeholder="Enter your RouterAI API key">
         </div>
         
         <div class="input-group">
             <label for="apiUrl">API URL (optional)</label>
             <input type="text" id="apiUrl" 
-                   value="https://api.openai.com/v1/chat/completions"
+                   value="https://api.routerai.ru/v1/chat/completions"
                    placeholder="API endpoint URL">
         </div>
         
         <div class="settings">
             <div class="input-group">
                 <label for="model">Model</label>
-                <input type="text" id="model" value="gpt-3.5-turbo">
+                <input type="text" id="model" value="gpt-4o-mini">
             </div>
             
             <div class="input-group">
@@ -246,7 +246,7 @@
             
             // Validation
             if (!apiKey) {
-                alert('Please enter your API key');
+                alert('Please enter your RouterAI API key.\nGet it from: https://routerai.ru/pages/vibe-coding-vscode-cline');
                 return;
             }
             
@@ -290,7 +290,7 @@
                 
             } catch (error) {
                 // Display error
-                responseText.textContent = `Error: ${error.message}\n\nNote: If you see a CORS error, you may need to use a proxy or run the Python CLI version instead.`;
+                responseText.textContent = `Error: ${error.message}\n\nNote: Make sure your API key is valid and you have sufficient balance.\nGet API key from: https://routerai.ru/pages/vibe-coding-vscode-cline`;
                 responseContainer.classList.add('show', 'error');
             } finally {
                 loading.style.display = 'none';

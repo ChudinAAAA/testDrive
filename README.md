@@ -1,6 +1,6 @@
 # 🤖 LLM API Client
 
-Простой клиент для отправки запросов в LLM API (OpenAI, Anthropic и др.) с получением и выводом ответов.
+Простой клиент для отправки запросов в LLM API через RouterAI (https://routerai.ru) с получением и выводом ответов.
 
 ## 📋 Содержание
 
@@ -19,18 +19,23 @@
 
 ### Установка
 
-1. Получите API ключ от OpenAI: https://platform.openai.com/api-keys
+1. Получите API ключ от RouterAI: https://routerai.ru/pages/vibe-coding-vscode-cline
 
 2. Установите переменную окружения:
 
 **Windows:**
 ```cmd
-set OPENAI_API_KEY=your-api-key-here
+set ROUTERAI_API_KEY=your-api-key-here
 ```
 
 **Linux/Mac:**
 ```bash
-export OPENAI_API_KEY=your-api-key-here
+export ROUTERAI_API_KEY=your-api-key-here
+```
+
+**Альтернативно** можно использовать OpenAI API ключ:
+```cmd
+set OPENAI_API_KEY=your-openai-key
 ```
 
 ### Использование
@@ -50,8 +55,34 @@ python llm_api_client.py "Напиши короткое стихотворени
 python llm_api_client.py "Объясни разницу между машинным обучением и глубоким обучением"
 ```
 
+🤖 LLM API Client
+
+📤 Sending request to https://api.openai.com/v1/chat/completions...
+📝 Prompt: Explain what is artificial intelligence in 2-3 sentences.
+
+📥 Response:
+Artificial intelligence (AI) refers to the simulation of human 
+intelligence in machines that are programmed to think and learn 
+like humans. It encompasses various technologies including machine 
+learning, natural language processing, and computer vision...
+
+✅ Done!
+```
 ### Пример вывода
 
+```
+🤖 LLM API Client
+
+📤 Sending request to https://api.routerai.ru/v1/chat/completions...
+📝 Prompt: Explain what is artificial intelligence in 2-3 sentences.
+
+📥 Response:
+Artificial intelligence (AI) refers to the simulation of human 
+intelligence in machines that are programmed to think and learn 
+like humans. It encompasses various technologies including machine 
+learning, natural language processing, and computer vision...
+
+✅ Done!
 ```
 ============================================================
 🤖 LLM API Client
@@ -75,15 +106,24 @@ learning, natural language processing, and computer vision...
 
 ### Настройка для других API
 
-Вы можете использовать код с другими LLM API (Anthropic Claude, местные модели и т.д.):
+Вы можете использовать код с другими OpenAI-совместимыми API:
 
 ```python
 from llm_api_client import LLMClient
 
-# Пример с другим API
+# Использование RouterAI (по умолчанию)
+client = LLMClient(api_key="your-routerai-key")
+
+# Использование OpenAI напрямую
 client = LLMClient(
-    api_key="your-api-key",
-    api_url="https://api.anthropic.com/v1/messages"
+    api_key="your-openai-key",
+    api_url="https://api.openai.com/v1/chat/completions"
+)
+
+# Использование локальных моделей (например, Ollama)
+client = LLMClient(
+    api_key="not-needed",
+    api_url="http://localhost:11434/v1/chat/completions"
 )
 
 response = client.chat("Привет, как дела?")
@@ -124,15 +164,8 @@ open llm_web_client.html
 - ✅ Красивый современный интерфейс
 - ✅ Настройка модели и параметров
 - ✅ Работает полностью в браузере
-- ⚠️ **Важно:** Может возникнуть CORS ошибка при прямых запросах к OpenAI API из браузера
-
-### Решение CORS проблемы
-
-Если возникает CORS ошибка, используйте один из вариантов:
-
-1. **Используйте CLI версию** (рекомендуется)
-2. Используйте CORS proxy
-3. Настройте локальный прокси-сервер
+- ✅ Поддержка RouterAI API
+- ⚠️ **Важно:** Убедитесь, что у вас есть действующий API ключ от RouterAI
 
 ---
 
@@ -185,9 +218,10 @@ print(full_response)
 ## ⚙️ Параметры
 
 ### Модели (model)
-- `gpt-3.5-turbo` - Быстрая и дешевая (по умолчанию)
-- `gpt-4` - Более мощная, но дороже
+- `gpt-4o-mini` - Быстрая и экономичная (по умолчанию)
+- `gpt-4o` - Более мощная модель
 - `gpt-4-turbo` - Баланс скорости и качества
+- `gpt-3.5-turbo` - Старая быстрая модель
 
 ### Temperature (температура)
 - `0.0-0.3` - Более детерминированные ответы
@@ -204,17 +238,19 @@ print(full_response)
 ## 🔧 Устранение неполадок
 
 ### "No API key found"
-- Убедитесь, что установили переменную окружения `OPENAI_API_KEY`
+- Убедитесь, что установили переменную окружения `ROUTERAI_API_KEY` или `OPENAI_API_KEY`
 - Или передайте ключ напрямую: `LLMClient(api_key="your-key")`
+- Получите ключ на: https://routerai.ru/pages/vibe-coding-vscode-cline
 
 ### "Connection error"
 - Проверьте интернет-соединение
-- Убедитесь, что API endpoint доступен
+- Убедитесь, что API endpoint доступен (https://api.routerai.ru)
 - Проверьте правильность API ключа
 
-### CORS ошибка (Web версия)
-- Используйте CLI версию вместо Web
-- Или настройте CORS proxy
+### "Insufficient balance" или ошибки авторизации
+- Проверьте баланс вашего аккаунта RouterAI
+- Убедитесь, что API ключ действителен
+- Проверьте, что ключ скопирован полностью без пробелов
 
 ---
 
@@ -228,8 +264,17 @@ print(full_response)
 
 Если возникли вопросы или проблемы:
 1. Проверьте раздел "Устранение неполадок"
-2. Убедитесь, что у вас есть действующий API ключ
-3. Проверьте баланс вашего OpenAI аккаунта
+2. Убедитесь, что у вас есть действующий API ключ от RouterAI
+3. Проверьте баланс вашего аккаунта на https://routerai.ru
+4. Документация RouterAI: https://routerai.ru/pages/vibe-coding-vscode-cline
+
+## 🌐 О RouterAI
+
+RouterAI - это сервис, предоставляющий доступ к различным LLM моделям через единый API.
+- Совместим с OpenAI API
+- Поддержка множества моделей
+- Удобная система оплаты
+- Получить API ключ: https://routerai.ru/pages/vibe-coding-vscode-cline
 
 ---
 

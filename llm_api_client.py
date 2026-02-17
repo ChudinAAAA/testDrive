@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Simple LLM API Client
 Sends requests to LLM API and displays responses
@@ -8,6 +9,16 @@ import os
 import sys
 import json
 from typing import Optional
+
+# Fix encoding for Windows console
+if sys.platform == 'win32':
+    try:
+        import codecs
+        if hasattr(sys.stdout, 'buffer'):
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+    except:
+        pass  # If encoding fix fails, continue anyway
 
 try:
     import requests
@@ -26,16 +37,30 @@ class LLMClient:
         Initialize LLM Client
         
         Args:
-            api_key: API key for authentication (defaults to OPENAI_API_KEY env var)
-            api_url: API endpoint URL (defaults to OpenAI's endpoint)
+            api_key: API key for authentication
+            api_url: API endpoint URL
         """
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.api_url = api_url or "https://api.openai.com/v1/chat/completions"
+        # Try to get API key from environment variables
+        # Priority: ROUTERAI_API_KEY > OPENAI_API_KEY
+        self.api_key = (
+            api_key or 
+            os.getenv("ROUTERAI_API_KEY") or 
+            os.getenv("OPENAI_API_KEY")
+        )
+        
+        # Default to RouterAI endpoint
+        self.api_url = (
+            api_url or
+            os.getenv("ROUTERAI_API_URL") or
+            "https://routerai.ru/api/v1/chat/completions"
+        )
         
         if not self.api_key:
-            print("⚠️  Warning: No API key provided. Set OPENAI_API_KEY environment variable or pass api_key parameter.")
+            print("⚠️  Warning: No API key provided.")
+            print("   Set ROUTERAI_API_KEY or OPENAI_API_KEY environment variable")
+            print("   or pass api_key parameter.")
     
-    def send_request(self, prompt: str, model: str = "gpt-3.5-turbo", 
+    def send_request(self, prompt: str, model: str = "gpt-4o-mini", 
                      temperature: float = 0.7, max_tokens: int = 500) -> dict:
         """
         Send request to LLM API
@@ -75,9 +100,20 @@ class LLMClient:
             )
             response.raise_for_status()
             return response.json()
-            
+
+        except requests.exceptions.HTTPError as e:
+            error_body = ""
+            try:
+                error_body = e.response.json()
+            except Exception:
+                error_body = e.response.text
+            return {
+                "error": str(e),
+                "status_code": e.response.status_code,
+                "details": error_body
+            }
         except requests.exceptions.RequestException as e:
-            return {"error": str(e), "status_code": getattr(e.response, 'status_code', None)}
+            return {"error": str(e), "status_code": None}
     
     def extract_response_text(self, response: dict) -> str:
         """
@@ -126,11 +162,12 @@ def main():
     if not client.api_key:
         print("❌ No API key found!")
         print("\nTo use this client, you need to:")
-        print("1. Get an API key from OpenAI (https://platform.openai.com/api-keys)")
-        print("2. Set it as environment variable:")
-        print("   Windows: set OPENAI_API_KEY=your-api-key-here")
-        print("   Linux/Mac: export OPENAI_API_KEY=your-api-key-here")
-        print("\nOr modify the code to use a different API provider.")
+        print("1. Get an API key from RouterAI:")
+        print("   https://routerai.ru/pages/vibe-coding-vscode-cline")
+        print("\n2. Set it as environment variable:")
+        print("   Windows: set ROUTERAI_API_KEY=your-api-key-here")
+        print("   Linux/Mac: export ROUTERAI_API_KEY=your-api-key-here")
+        print("\nOr use OpenAI API key with OPENAI_API_KEY variable.")
         return
     
     # Example prompts
